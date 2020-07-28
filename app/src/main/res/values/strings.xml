@@ -16,6 +16,8 @@
     <string name="label_jwt">Token JWT</string>
     <string name="label_response">Response here...</string>
 
+    <string name="param_text">param...</string>
+
     <string name="button_saludar">Hello server!</string>
 
 

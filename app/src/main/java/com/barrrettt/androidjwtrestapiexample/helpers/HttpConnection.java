@@ -31,8 +31,8 @@ public class HttpConnection {
 
             //Body
             JSONObject json = new JSONObject();
-            json.put("username","admin");
-            json.put("password","abc123..");
+            json.put("username",username);
+            json.put("password",password);
             String sJson = json.toString();
 
             OutputStream os = urlConn.getOutputStream();
@@ -70,8 +70,53 @@ public class HttpConnection {
         return jwt;
     }
 
-    public String getHello(User user, String parametro ){
-        return "Hello";
+    public String getHello(User user , String param){
+        String response = null;
+        HttpURLConnection urlConn = null;
+
+        try {
+
+            URL url;
+            if (param.equalsIgnoreCase("")){
+                url = new URL(strUrl+"/saludo");
+            }else{
+                url = new URL(strUrl+"/saludo/?nombre="+param);
+            }
+
+            urlConn = (HttpURLConnection)url.openConnection();
+            urlConn.setRequestMethod("GET");
+
+            //Headed
+            urlConn.setRequestProperty("Authorization", "Bearer "+ user.getJwt());
+
+            //Respuesta
+            int responseCode = urlConn.getResponseCode();
+
+            InputStream inputStream;
+            if (responseCode == HttpURLConnection.HTTP_OK){
+                inputStream = urlConn.getInputStream();
+
+            }else{
+                inputStream = urlConn.getErrorStream();
+            }
+
+            BufferedReader br = new BufferedReader(new InputStreamReader(inputStream, "utf-8"));
+            StringBuilder sb = new StringBuilder();
+            String line = null;
+            while ((line = br.readLine()) != null) {
+                sb.append(line.trim());
+            }
+
+            response = sb.toString();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            response = null;
+
+        }finally {
+            urlConn.disconnect();
+        }
+        return response;
     }
 }
 

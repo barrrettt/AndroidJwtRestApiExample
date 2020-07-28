@@ -19,6 +19,9 @@ import com.barrrettt.androidjwtrestapiexample.helpers.DataBase;
 import com.barrrettt.androidjwtrestapiexample.helpers.HttpConnection;
 import com.barrrettt.androidjwtrestapiexample.ui.main.MainActivity;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.lang.ref.WeakReference;
 
 
@@ -48,10 +51,17 @@ public class LoginActivity extends AppCompatActivity {
         String username = intent.getStringExtra("USER_NAME");
         if (username != null) usernameEditText.setText(username);
 
-        //onclick Button
+        //onclick Button loggin
         loginButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                //disable views
+                enableViews(false);
+
+                //oculta teclado
+                InputMethodManager imm = (InputMethodManager)getSystemService(context.INPUT_METHOD_SERVICE);
+                imm.hideSoftInputFromWindow(passwordEditText.getWindowToken(), 0);
+
                 //lanza un task para coger el JWT del server
                 new AuthUserPassTask((Activity) context).execute();
             }
@@ -80,7 +90,6 @@ public class LoginActivity extends AppCompatActivity {
         startActivity(intent);
         finish();
     }
-
 }
 
     /*ASYNC TASK PARA AUTENTICAR USER + OPTENER EL JWT*/
@@ -90,25 +99,6 @@ class AuthUserPassTask extends AsyncTask<Void, Void, String> {
 
     public AuthUserPassTask(Activity activity) {
         this.wrActivity = new WeakReference<Activity>(activity);
-    }
-
-    @Override
-    protected void onPreExecute() {
-        super.onPreExecute();
-
-        //get reference
-        LoginActivity activity = null;
-        if (wrActivity!=null) activity = (LoginActivity) wrActivity.get();
-
-        //disable views
-        activity.enableViews(false);
-
-        //oculta teclado
-        InputMethodManager imm = (InputMethodManager)activity.getSystemService(activity.context.INPUT_METHOD_SERVICE);
-        imm.hideSoftInputFromWindow(activity.passwordEditText.getWindowToken(), 0);
-
-        //toast
-        Toast.makeText(activity.getApplicationContext(), "Esperando respuesta...", Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -127,6 +117,17 @@ class AuthUserPassTask extends AsyncTask<Void, Void, String> {
 
         //Guardar user y Token a la database si nos devuelven algo:
         if (jwt != null) {
+
+            try {
+                JSONObject jsonJwt = new JSONObject(jwt);
+                jwt = jsonJwt.getString("jwt");
+                if (jwt==null) return null;
+
+            } catch (JSONException e) {
+                e.printStackTrace();
+                return null;
+            }
+
             activity.saveJWT(new User(username,jwt));
         }
         return jwt;

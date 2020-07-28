@@ -7,6 +7,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -18,6 +19,8 @@ import com.barrrettt.androidjwtrestapiexample.helpers.DataBase;
 import com.barrrettt.androidjwtrestapiexample.helpers.HttpConnection;
 import com.barrrettt.androidjwtrestapiexample.ui.login.LoginActivity;
 
+import org.w3c.dom.Text;
+
 import java.lang.ref.WeakReference;
 
 public class MainActivity extends AppCompatActivity {
@@ -28,8 +31,10 @@ public class MainActivity extends AppCompatActivity {
     TextView usernameTextView;
     TextView jwtTextView;
     TextView responseTextView;
-    Button helloButton;
+    EditText paramText;
     ProgressBar progressBar;
+    Button helloButton;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,8 +46,10 @@ public class MainActivity extends AppCompatActivity {
         usernameTextView = findViewById(R.id.usernameLabel);
         jwtTextView = findViewById(R.id.jwtLabel);
         responseTextView = findViewById(R.id.responseLabel);
-        helloButton = findViewById(R.id.saludarButton);
+        paramText = findViewById(R.id.paramText);
         progressBar = findViewById(R.id.progressBar);
+        helloButton = findViewById(R.id.saludarButton);
+
 
         //reset database
         //DataBase.resetDB(getApplicationContext());
@@ -56,19 +63,26 @@ public class MainActivity extends AppCompatActivity {
         }
 
         //mostramos datos de user
-        usernameTextView.setText(actualUser.getName());
+        usernameTextView.setText("👤 "+actualUser.getName());
         jwtTextView.setText(actualUser.getJwt());
 
         //onclick Button
         helloButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                String param = paramText.getText().toString();
                 //lanza un task para coger la peticion del server
-                new HelloTask((Activity) context).execute();
+                new HelloTask((Activity) context).execute(param);
             }
         });
 
-
+        //onclick label user
+        usernameTextView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startLogin(actualUser.getName());
+            }
+        });
     }
 
     //lanza la activity de login
@@ -76,12 +90,13 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = new Intent(this, LoginActivity.class);
         intent.putExtra("USER_NAME", username);
         startActivity(intent);
+        finish();
     }
 
 }
 
 /*ASYNC TASK PARA HACER PETICION HTTP GET */
-class HelloTask extends AsyncTask<Void, Void, String> {
+class HelloTask extends AsyncTask<String, Void, String> {
 
     private WeakReference<Activity> wrActivity;
 
@@ -103,14 +118,16 @@ class HelloTask extends AsyncTask<Void, Void, String> {
     }
 
     @Override
-    protected String doInBackground(Void... params) {
+    protected String doInBackground(String... params) {
         //get reference
         MainActivity activity = null;
         if (wrActivity!=null) activity = (MainActivity) wrActivity.get();
 
         //Petición HTTP para obtener datos del server
+        String parm = params[0];
         HttpConnection conn = new HttpConnection();
-        return conn.getHello(activity.actualUser,"parametro");
+        String response = conn.getHello(activity.actualUser,parm);
+        return response;
     }
 
     @Override
