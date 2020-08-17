@@ -25,7 +25,7 @@ public class DataBase extends SQLiteOpenHelper{
     @Override
     public void onCreate(SQLiteDatabase db) {
         db.execSQL(TABLA_APP);
-        db.execSQL("INSERT INTO app (jwt) VALUES ('null')");
+        db.execSQL("INSERT INTO app (username,jwt) VALUES ('','')");
     }
 
     @Override
